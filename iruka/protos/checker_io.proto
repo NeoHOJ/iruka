@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+/**
+ * Some structure for communicate between the main process and the checker.
+ */
+
+import "iruka/protos/common.proto";
+import "iruka/protos/subtask.proto";  // SubtaskContext
+
+message CheckerInput {
+  string path_infile = 1;
+  string path_outfile = 2;
+  string path_out_user = 3;
+  SubtaskContext context = 4;
+  // SubtaskSpec spec = 2;
+  uint64 group_score_max = 5;
+
+  // some rare cases require peeking at filesystem
+  string user_dir = 16;
+}
+
+message CheckerOutput {
+  JudgeStat override_stat = 1;
+  Verdict verdict = 2;
+
+  uint64 score_tmp = 3;
+  string user_message = 4;
+  string log = 5;
+  // map<string, google.protobuf.Any> meta = 5;
+}

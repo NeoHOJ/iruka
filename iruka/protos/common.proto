@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+import "google/protobuf/any.proto";
+
+/**
+ * The verdict used internally by Iruka. Note that they are different from what
+ * in HOJ database.
+ */
+enum Verdict {
+  PENDING = 0;
+  AC = 1;
+  RE = 2;
+  CE = 3;
+  TLE = 4;
+  MLE = 5;
+  WA = 6;
+  PE = 7;
+  OLE = 8;
+  OTHER = 9;
+  SERR = 10;
+  RF = 11;
+  SKIPPED = 12;
+}
+
+/**
+ * Indicate the status of a job in Iruka server. A job is pending when in queue;
+ * running when delegated to a client, and so forth.
+ */
+enum JobStatus {
+  JOB_UNSPECIFIED = 0;
+  JOB_PENDING = 1;
+  JOB_RETRYING = 2;
+  JOB_RUNNING = 3;
+  JOB_REJECTED = 4;
+  JOB_FAILED = 5;
+  JOB_COMPLETED = 6;
+}
+
+message Int64Array {
+  repeated int64 value = 1;
+}
+
+/**
+ * A generic set of statistics assessing the efficientness of the program,
+ * typically recorded during the judge process.
+ */
+message JudgeStat {
+  bool is_aborted = 1;
+  uint64 time_used = 2;
+  uint64 mem_used = 3;
+  uint64 score = 4;
+  string log = 5;
+  string user_log = 6;
+  Verdict verdict = 7;
+  map<string, google.protobuf.Any> meta = 8;
+}
+
+/**
+ * Each task group can be assigned with a score. Although you can always pack
+ * it in meta of subtask's `JudgeStat`, this is not recommended since they are
+ * probably not understood by built-in graders.
+ */
+message TaskGroupStat {
+  bool is_aborted = 1;
+  uint64 score = 2;
+}
+

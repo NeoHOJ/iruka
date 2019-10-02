@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+package iruka.protos;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "iruka/protos/common.proto";
+
+service IrukaAdmin {
+  rpc ListJobs (JobFilter) returns (Jobs);
+  rpc ListClients (google.protobuf.Empty) returns (Clients);
+  rpc ExecSubmission (SubmissionId) returns (ExecResult);
+
+  // ad-hoc commands that merely display output to the user
+  rpc AdminCommand (CommandInvocation) returns (stream CommandEvent);
+}
+
+message JobFilter {
+  JobStatus status = 1;
+}
+
+message Jobs {
+  repeated Job jobs = 1;
+}
+
+message Job {
+  uint64 id = 1;
+  string name = 2;
+  google.protobuf.Timestamp creation_time = 3;
+  uint64 submission_id = 4;
+  JobStatus status = 5;
+  uint64 run_by = 6;
+}
+
+message Clients {
+  repeated Client clients = 1;
+}
+
+message Client {
+  string name = 1;
+  string address = 2;
+  uint64 job_id = 3;
+}
+
+message CommandInvocation {
+  repeated string args = 1;
+  string stdin = 2;
+}
+
+message CommandEvent {
+  oneof event {
+    string stdout = 1;
+    string stderr = 2;
+    uint32 return_code = 3;
+  }
+}
+
+message SubmissionId {
+  uint64 id = 1;
+}
+
+message ExecResult {
+  enum ExecResultCode {
+    SUCCESS = 0;
+    NO_ONLINE_CLIENT = 1;
+
+    RECORD_NOT_FOUND = 65;
+    ALREADY_IN_QUEUE = 66;
+
+    UNKNOWN = 1023;
+  }
+  ExecResultCode result = 1;
+}

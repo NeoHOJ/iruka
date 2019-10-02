@@ -1,0 +1,9 @@
+
+# server & credientials
+server: 'localhost:50051'
+auth_token: 'zxcasd123'
+
+nsjail_path: '/usr/local/bin/nsjail'
+testdata_path: '/iruka/testdata'
+user_store_path: '/tmp'
+

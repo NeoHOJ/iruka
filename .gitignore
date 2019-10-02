@@ -1,0 +1,13 @@
+# compiled
+*.pyc
+
+# caches
+.mypy_cache
+
+# classes generated from protobuf
+*_pb2.py
+*_pb2.pyi
+*_pb2_grpc.py
+
+# default configurations
+iruka.yml

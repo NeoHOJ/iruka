@@ -1,0 +1,2 @@
+class IrukaInternalError(Exception):
+    pass

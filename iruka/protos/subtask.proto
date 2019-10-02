@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+import "iruka/protos/common.proto";
+
+/**
+ * A list of `subtaskContext`.
+ */
+message SubtaskContextList {
+  repeated SubtaskContext values = 1;
+}
+
+/**
+ * Describe the context of a subtask, including its position of the job or
+ * task group.
+ */
+message SubtaskContext {
+  string label = 1;
+  uint64 task_group_num = 2;
+  uint64 subtask_num = 3;
+  JudgeStat stat = 4;
+}

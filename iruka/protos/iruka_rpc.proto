@@ -1,0 +1,181 @@
+syntax = "proto3";
+
+package iruka.protos;
+
+import "google/protobuf/empty.proto";
+import "iruka/protos/common.proto";
+import "iruka/protos/subtask.proto";
+
+service IrukaRpc {
+  rpc Version (google.protobuf.Empty) returns (VersionInfo);
+  rpc Listen (AuthenticateRequest) returns (stream ServerEvent);
+  rpc ReportStatus (ClientStatus) returns (GeneralResponse);
+  rpc ReportSubmission (stream SubmissionEvent) returns (GeneralResponse);
+}
+
+/**
+ * Server's version info. It can be queried by any endpoints.
+ */
+message VersionInfo {
+  string version = 1;
+  uint64 proto_revision = 2;
+}
+
+/**
+ * The client authenticates with the server by this token.
+ */
+message AuthenticateRequest {
+  string client_version = 1;
+  string token = 2;
+}
+
+message ServerEvent {
+  enum EventCode {
+    UNDEFINED = 0;
+    ACK = 1;
+    REQUEST_JUDGE = 2;
+    // below UNUSED
+    ABORT_TASK = 3;
+    QUERY_STATUS = 4;
+  }
+
+  EventCode type = 1;
+  oneof event {
+    SubmissionRequest submission_req = 2;
+  }
+}
+
+/**
+ * A server-to-client request to judge a submission.
+ */
+message SubmissionRequest {
+  /* transient; for HOJ only */
+  enum HojProblemType {
+    REGULAR = 0;
+    SPECIAL_JUDGE = 1;
+    INTERACTIVE = 2;
+  }
+
+  /* unique id for identifying this request/response */
+  uint64 id = 1;
+  uint64 submission_id = 2;
+  Submission submission = 3;
+
+  repeated Int64Array hoj_spec = 20001;
+  HojProblemType hoj_type = 20002;
+
+  /* request judging on only selected subtasks; UNIMPLEMENTED */
+  repeated uint64 subtask_ids = 4;
+}
+
+/**
+ * A submission to a problem.
+ * `code` is the main code that the user submits, and must be a valid UTF-8
+ * string. Other supplement files meant to be sent along are stored in a map.
+ * It is up to the problem & the specified preset to interpret those files.
+ */
+message Submission {
+  uint64 problem_id = 1;
+  string code = 2;
+  string build_preset = 3;
+
+  map<string, bytes> files = 5;
+}
+
+/**
+ * Events emitted by the client during judging a submission.
+ */
+message SubmissionEvent {
+  oneof event {
+    SubmissionAck ack = 1;
+    SubtaskContextList partial_stat = 2;
+    SubmissionResult result = 3;
+    SubmissionException exception = 4;
+  }
+}
+
+/**
+ * An event to acknowledge the server that a job is either going to be processed
+ * by this client, or rejected immediately because of technical difficulites.
+ * This must be the beginning event.
+ */
+message SubmissionAck {
+  enum RejectReason {
+    UNDEFINED = 0;
+    // TODO: design how they affect the consequences of the job.
+    // e.g., retry in other clients when UNSUPPORTED_xxx, but not in
+    // INVALID_SUBMISSION
+    INVALID_SUBMISSION = 1;
+    UNSUPPORTED_PROBLEM = 2;
+    UNSUPPORTED_PRESET = 3;
+    CLIENT_MAINTENANCE = 4;
+    UNKNOWN = 5;
+  }
+
+  /* should be the same as the corresponding `SubmissionEvent`. */
+  uint64 id = 1;
+  RejectReason reject_reason = 2;
+}
+
+/**
+ * An event to indicate that some exception occurs. Clients should avoid raising
+ * exceptions after accepting submissions. If something bad really happens,
+ * clients may emit this event with helpful messages.
+ */
+message SubmissionException {
+  // TODO: type
+  string message = 1;
+  string backtrace = 2;
+}
+
+/**
+ * A log entry, typically the output of some external programs. If such an entry
+ * is reaching beyond the resource limit, it may be truncated and the
+ * `truncated` flag is set.
+ */
+message Log {
+  bool truncated = 1;
+  string content = 2;
+}
+
+/**
+ * The total result of a submission.
+ */
+message SubmissionResult {
+  bool pipeline_success = 1;
+  /* NOT used in HOJ grading semantics */
+  repeated TaskGroupStat groups = 3;
+
+  JudgeStat final_stat = 4;
+  uint64 code_length = 5;
+
+  map<string, Log> log = 6;
+
+  /* in `SubmissionEvent`, this field is usually unused */
+  repeated JudgeStat subtasks = 20001;
+}
+
+/**
+ * Currently UNUSED.
+ * The server polls every client periodically. This is a message for a client
+ * describing the status of itself.
+ */
+message ClientStatus {
+  enum ClientStatusCode {
+    IDLE = 0;
+    BUSY = 1;
+  }
+  /* of corresponding request (not even available for now haha) */
+  uint64 id = 1;
+  ClientStatusCode status = 2;
+  uint64 judging_id = 3;
+  uint64 time_budget_remaining = 4;
+}
+
+/**
+ * A short, generic message for concise and human-readable-only responses.
+ */
+message GeneralResponse {
+  bool ok = 1;
+  string msg = 2;
+}
