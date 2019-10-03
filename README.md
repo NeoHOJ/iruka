@@ -15,9 +15,14 @@ Roughly, it communicates with the server (called Iruka Server for now) with gRPC
 大致上來說，它和伺服器端 (現在叫做 Iruka Server，~之後應該會取個獨立的名字啦~) 用 gRPC 溝通，用權杖 (token) 來和伺服器驗證身份，並且開始「聽」 [1] 伺服器端的請求。這個架構聽起來超奇怪的對吧，但它有些優勢是之後深入理解之後才會看出來的。一旦收到一個評測請求，它會先檢查自己是否有足夠的條件評測，像是檢查請求的合法性或是測資是否齊備。如果是的話就會啟動一個管線機制 (當然，這裡是說 CI 的那個 pipeline)。程式碼經過編譯、執行、確認答案等階段之後會得到統計資料和評測的狀態像是 `AC` 或 `WA` 等等，然後客戶端對伺服器端開啟另一個請求把這些資料送回。
 
 
-By strictly separating out the server/client, we can prevent a malicious client messing up the database or corrupt the test data. This design is also scalable as the client need not worry about how to poll the database, how to receive the dataset from the wire, etc., and the server can have a better control of scheduling.
+By clearly separating out the server/client, we can prevent a malicious client from messing up the database or corrupting the test data. This design is also scalable as the client need not worry about how to poll the database, how to receive the dataset from the wire, etc., and the server can have a better control of scheduling.
 
 藉由明確切分伺服端和客戶端的設計，我們可以避免惡意的客戶端弄炸資料庫或毀損測資。這個設計也比較好擴容，因為客戶端不需要為如何輪詢資料庫或如何反序列化測試資料集等等而困擾，而且伺服器端也比較能控制排程。
+
+
+To run a client you need to compile a sandbox additionally. The sandbox is powered by a [customized version of nsjail](https://github.com/NeoHOJ/nsjail), providing a reliable, flexible, and configurable interface for various restrictions on resources. For a detailed description, please head for [this transient wiki page].
+
+要運行一個客戶端，你需要另外編譯一個沙盒。沙盒功能是由 [客製化版的 nsjail](https://github.com/NeoHOJ/nsjail) 驅動，提供一個可靠、靈活且易於設定的介面來支援多樣的資源限制。更多詳細資訊請參考 [這個臨時的的 wiki 頁面](https://github.com/NeoHOJ/hoj-judge/wiki/Building-nsjail)。
 
 
 [1]: "server-side streaming" in HTTP/2, can be thought as long-polling in HTTP 1.x

@@ -54,7 +54,7 @@ class IrukaClient(object):
             self.stub = None
         except grpc.RpcError as err:
             if err.code() == grpc.StatusCode.UNAVAILABLE:
-                print('Error connecting to server: {}'.format(err.details()))
+                logger.exception('Error connecting to server')
                 return False
             else:
                 raise
@@ -68,7 +68,7 @@ class IrukaClient(object):
         try:
             auth_result = next(events)
         except grpc.RpcError as err:
-            print('Error to register client ({}): {}'.format(err.code(), err.details()))
+            logger.exception('Error to register client (%s)', err.code())
             return False
 
         logger.info('Auth success.')
@@ -76,7 +76,7 @@ class IrukaClient(object):
         for event in events:
             self.processRequest(event)
 
-        print('The subscription channel is closed by the server.')
+        logger.info('The subscription channel is closed by the server.')
 
     def processRequest(self, event):
         enum = iruka_rpc_pb2.ServerEvent
