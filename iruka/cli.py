@@ -43,12 +43,25 @@ class IrukaClient(object):
         self.config = config
         self.stub = None
 
+        # validate config
+        p_nsjail = Path(config.nsjail_path)
+        if not p_nsjail.is_file():
+            raise ValueError('nsjail_path should point to a file.')
+        logger.debug('Using nsjail at: %s', p_nsjail.absolute())
+
     def connect(self):
         # TODO: try to presist connection if the server
         # tells that the shutdown is temporatory
         try:
             logger.debug('Connecting to {}...'.format(self.config.server))
-            with grpc.insecure_channel(self.config.server) as channel:
+            if self.config.use_https:
+                with open(self.config.ssl_root_ca, 'rb') as f:
+                    creds = grpc.ssl_channel_credentials(f.read())
+                channel_thunk = lambda: grpc.secure_channel(self.config.server, creds)
+            else:
+                channel_thunk = lambda: grpc.insecure_channel(self.config.server)
+
+            with channel_thunk() as channel:
                 self.stub = iruka_rpc_pb2_grpc.IrukaRpcStub(channel)
                 self.subscribeToServer()
             self.stub = None
