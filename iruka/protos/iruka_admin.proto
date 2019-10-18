@@ -29,7 +29,8 @@ message Job {
   google.protobuf.Timestamp creation_time = 3;
   uint64 submission_id = 4;
   JobStatus status = 5;
-  uint64 run_by = 6;
+  // the name of client
+  string run_by = 6;
 }
 
 message Clients {

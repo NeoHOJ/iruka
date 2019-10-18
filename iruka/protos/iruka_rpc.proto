@@ -126,6 +126,9 @@ message SubmissionException {
   // TODO: type
   string message = 1;
   string backtrace = 2;
+  // set if something really went wrong and manual interventions are required
+  // before retrying
+  bool fatal = 3;
 }
 
 /**
@@ -151,7 +154,8 @@ message SubmissionResult {
 
   map<string, Log> log = 6;
 
-  /* in `SubmissionEvent`, this field is usually unused */
+  /* in `SubmissionEvent` when partial stat is non-empty,
+     this field is usually unused */
   repeated JudgeStat subtasks = 20001;
 }
 

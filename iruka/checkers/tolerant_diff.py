@@ -17,10 +17,11 @@ from ..protos import (common_pb2, checker_io_pb2)
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger('checkers.tolerant_diff')
 
-def rstrip(s):
-    while s and (s[-1] == '\r' or s[-1] == '\n'):
-        s = s[:-1]
-    return s
+def strip_eol(s):
+    last = -1
+    while s and (s[last] in ('\r', '\n')):
+        last -= 1
+    return s[:last]
 
 
 def tolerant_diff_at(fa, fb):
@@ -28,7 +29,7 @@ def tolerant_diff_at(fa, fb):
     while True:
         la, lb = fa.readline(), fb.readline()
         if la:
-            if not lb or rstrip(la.strip()) != rstrip(lb.strip()): return line
+            if not lb or strip_eol(la.strip()) != strip_eol(lb.strip()): return line
         elif lb:
             return line
         else:
@@ -74,7 +75,7 @@ def main(checker_input):
 # writing an interface for debugging is extremely helpful
 # but not absolutely necessary
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 3:
         print('Usage: python -m {} out out_user'.format(__spec__.name))
         sys.exit(1)
 
