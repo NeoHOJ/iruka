@@ -20,7 +20,7 @@ logging.Formatter.default_msec_format = '%s.%03d'
 logger = logging.getLogger(__name__)
 
 
-# the same machanism used in server
+# the same mechanism used in server
 def loadConfig(path=None, configClass=Config):
     if path is None:
         try:
