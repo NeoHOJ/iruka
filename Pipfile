@@ -18,4 +18,4 @@ pymysql = ">=0.9.3"
 click = "*"
 
 [requires]
-python_version = "3.6"
+python_version = "3.8"
